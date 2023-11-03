@@ -111,12 +111,9 @@ class Validator():
             return colors
 
         def format_range(row) -> str:
-            colors = []
-            for value in row:
-                if isinstance(value, str):
-                    colors.append(error_color_css if value.find('?') >= 0 else '')
-                else:
-                    colors.append('')
+            colors = [''] * len(row)
+            if row['Erros na Linha'] != '':
+                colors = [error_color_css] * len(row)
             return colors
 
         def remove_error_icon(item):
@@ -125,7 +122,7 @@ class Validator():
             return item
 
         self.dataframe = self.dataframe.style.apply(format_wrong_dtype).format(precision=3, subset=columns)
-        self.dataframe = self.dataframe.apply(format_range).format(remove_error_icon, subset=columns)
+        self.dataframe = self.dataframe.apply(format_range, axis=1) # .format(remove_error_icon, subset=columns)
 
 
     def _check_data_types(self) -> None:
@@ -238,8 +235,6 @@ class Validator():
         Returns:
             pd.DataFrame: The updated DataFrame with conflict information.
         """
-        problems = [''] * len(dataframe)
-
         if peso:
             columns = columns[2:]
             message = ' + PESO: '
@@ -250,33 +245,15 @@ class Validator():
         col1 = columns[0]
         col2 = columns[1]
 
-        col1_values = dataframe[col1].values.astype(str)
-        col2_values = dataframe[col2].values.astype(str)
-
-        ranges = list(zip(dataframe[col1], dataframe[col2], range(len(dataframe))))
-
-        for i in range(len(ranges)):
-            conflicts = []
-            for j in range(len(ranges)):
-                if i != j:
-                    if (ranges[j][0] < ranges[i][1] < ranges[j][1]):
-                        conflicts.append(j)
-
-            if conflicts:
-                conflicts.append(i)
-                conflicts.sort()
-                for idx in conflicts:
-                    problems[ranges[idx][2]] = message + ', '.join(map(str, conflicts))
-                    col1_values[ranges[idx][2]] = '?' + col1_values[ranges[idx][2]]
-                    col2_values[ranges[idx][2]] = '?' + col2_values[ranges[idx][2]]
-
         if 'Erros na Linha' not in dataframe.columns:
-            dataframe['Erros na Linha'] = problems
-        else:
-            dataframe['Erros na Linha'] = dataframe['Erros na Linha'] + problems
+            dataframe['Erros na Linha'] = ''
 
-        dataframe[col1] = col1_values
-        dataframe[col2] = col2_values
+        for key, value in enumerate(dataframe[[col1, col2]].values):
+            column1, column2 = value
+            conflicts = dataframe.loc[(column2 > dataframe[col1]) & (dataframe[col2] > column2)].index
+
+            if len(conflicts) > 0:
+                dataframe.iloc[key, 9] = dataframe.iloc[key, 9] + message + ', '.join(map(str, conflicts))
 
         return dataframe
 
