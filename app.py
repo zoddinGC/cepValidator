@@ -1,9 +1,12 @@
 from models import Validator
 from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
+
 import pandas as pd
 import io
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -39,7 +42,11 @@ def upload_file():
             output.seek(0)
 
             # Return the updated Excel file to the user
-            return send_file(output, download_name='planilha_atualizada.xlsx', as_attachment=True)
+            return send_file(
+                output,
+                as_attachment=True,
+                download_name="planilha_atualizada.xlsx",
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
         else:
             return jsonify({'error': 'Invalid file format, must be .xlsx'}), 400

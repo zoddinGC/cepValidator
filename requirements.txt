@@ -3,3 +3,4 @@ openpyxl==3.1.2
 numpy==1.26.0
 flask==3.0.0
 gunicorn==19.7.1
+Flask-Cors==4.0.0
