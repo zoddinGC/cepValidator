@@ -1,4 +1,0 @@
-.gitignore
-*env/
-*database/
-test.ipynb
