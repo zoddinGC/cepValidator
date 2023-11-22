@@ -115,14 +115,12 @@ class Validator():
             if row['Erros na Linha'] != '':
                 colors = [error_color_css] * len(row)
             return colors
-
-        def remove_error_icon(item):
-            if isinstance(item, str):
-                return item.replace('?', '')
-            return item
+        
+        self.dataframe['PesoFim'] = self.dataframe['PesoFim'].map("{:.3f}".format)
+        self.dataframe['PesoInicio'] = self.dataframe['PesoInicio'].map("{:.3f}".format)
 
         self.dataframe = self.dataframe.style.apply(format_wrong_dtype).format(precision=3, subset=columns)
-        self.dataframe = self.dataframe.apply(format_range, axis=1) # .format(remove_error_icon, subset=columns)
+        self.dataframe = self.dataframe.apply(format_range, axis=1)
 
 
     def _check_data_types(self) -> None:
